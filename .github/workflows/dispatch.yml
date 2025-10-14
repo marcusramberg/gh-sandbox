@@ -5,7 +5,7 @@ on:
 
 jobs:
   hello:
-    runs-on: mwork
+    runs-on: self-hosted
     container:
       image: ubuntu:latest
     steps:
