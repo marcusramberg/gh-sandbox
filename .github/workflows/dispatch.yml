@@ -11,3 +11,4 @@ jobs:
     steps:
       - name: Echo Hello World
         run: echo "Hello World"
+      - run: uptime
