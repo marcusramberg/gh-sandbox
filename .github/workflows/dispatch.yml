@@ -8,6 +8,7 @@ jobs:
         id: checkov
         uses: docker://ghcr.io/bridgecrewio/checkov:3.2.477@sha256:51bebaca76536e985118a6af41ff4811a1b909a5e370492a955b4b6c82da6a88
         with:
+          entrypoint: /entrypoint.sh
           directory: terraform/
           quiet: true # Only failed checks
           soft_fail: true # Do not return an error code if there are failed checks
