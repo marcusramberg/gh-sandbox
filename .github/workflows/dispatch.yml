@@ -4,6 +4,12 @@ jobs:
   container_action:
     runs-on: self-hosted
     steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Run debug step
+        id: debug
+        uses: docker://ghcr.io/bridgecrewio/checkov:3.2.477@sha256:51bebaca76536e985118a6af41ff4811a1b909a5e370492a955b4b6c82da6a88
+        with:
+          entrypoint: "bash -c 'pwd && ls -la'"
       - name: Run Checkov action
         id: checkov
         uses: docker://ghcr.io/bridgecrewio/checkov:3.2.477@sha256:51bebaca76536e985118a6af41ff4811a1b909a5e370492a955b4b6c82da6a88
