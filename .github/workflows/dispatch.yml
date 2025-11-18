@@ -25,7 +25,10 @@ jobs:
   hello:
     runs-on: self-hosted
     container:
-      image: ubuntu:latest
+      image: ghcr.io/marcusramberg/gh-sandbox/builder:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Echo Hello World
