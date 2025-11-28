@@ -1,5 +1,7 @@
 name: Hello World
 on: workflow_dispatch
+permissions:
+  id-token: write
 jobs:
   container_action:
     runs-on: self-hosted
@@ -22,10 +24,14 @@ jobs:
           external_checks_dirs: images/atlantis/checkov_policies/ # Contains custom checks
           # - `CKV_GCP_custom_1` Disallow sensitive data sources to be used as an input in other data blocks.
           container_user: 1000 # Run container as user with uid
+          # - uses: docker://ghcr.io/marcusramberg/gh-sandbox/go-action:latest
+          #   with:
+          #     entrypoint: /app
+          #     container_user: 1000
   hello:
     runs-on: self-hosted
     container:
-      image: ghcr.io/marcusramberg/gh-sandbox/builder:latest
+      image: ghcr.io/remarkable/helmfile-nix:v0.15.1
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.github_token }}
@@ -34,3 +40,4 @@ jobs:
       - name: Echo Hello World
         run: echo "Hello World"
       - run: uptime
+
