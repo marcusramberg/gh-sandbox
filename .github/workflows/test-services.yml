@@ -1,0 +1,172 @@
+name: Test Services Support
+on: workflow_dispatch
+permissions:
+  id-token: write
+jobs:
+  test-redis-service:
+    runs-on: self-hosted
+    container:
+      image: ubuntu:22.04
+    services:
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Install redis-tools
+        run: |
+          apt-get update
+          apt-get install -y redis-tools
+      
+      - name: Test Redis connection
+        run: |
+          echo "Testing Redis connection..."
+          redis-cli -h localhost -p 6379 ping
+          redis-cli -h localhost -p 6379 set test "Hello from GitHub Actions"
+          redis-cli -h localhost -p 6379 get test
+          echo "Redis test passed!"
+
+  test-postgres-service:
+    runs-on: self-hosted
+    container:
+      image: ubuntu:22.04
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: testuser
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U testuser"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Install postgresql-client
+        run: |
+          apt-get update
+          apt-get install -y postgresql-client
+      
+      - name: Test PostgreSQL connection
+        env:
+          PGPASSWORD: postgres
+        run: |
+          echo "Testing PostgreSQL connection..."
+          psql -h localhost -U testuser -d testdb -c "SELECT version();"
+          psql -h localhost -U testuser -d testdb -c "CREATE TABLE test (id serial PRIMARY KEY, message text);"
+          psql -h localhost -U testuser -d testdb -c "INSERT INTO test (message) VALUES ('Hello from GitHub Actions');"
+          psql -h localhost -U testuser -d testdb -c "SELECT * FROM test;"
+          echo "PostgreSQL test passed!"
+
+  test-multiple-services:
+    runs-on: self-hosted
+    container:
+      image: ubuntu:22.04
+    services:
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: testuser
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+      nginx:
+        image: nginx:alpine
+        ports:
+          - 8080:80
+    steps:
+      - name: Install tools
+        run: |
+          apt-get update
+          apt-get install -y redis-tools postgresql-client curl
+      
+      - name: Test all services
+        env:
+          PGPASSWORD: postgres
+        run: |
+          echo "=== Testing Redis ==="
+          redis-cli -h localhost -p 6379 ping
+          echo "Redis OK!"
+          
+          echo "=== Testing PostgreSQL ==="
+          psql -h localhost -U testuser -d testdb -c "SELECT 1;"
+          echo "PostgreSQL OK!"
+          
+          echo "=== Testing Nginx ==="
+          curl -f http://localhost:8080
+          echo "Nginx OK!"
+          
+          echo "All services are working!"
+
+  test-service-with-custom-env:
+    runs-on: self-hosted
+    container:
+      image: ubuntu:22.04
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_PASSWORD: custompass
+          POSTGRES_USER: customuser
+          POSTGRES_DB: customdb
+        ports:
+          - 5432:5432
+    steps:
+      - name: Install postgresql-client
+        run: |
+          apt-get update
+          apt-get install -y postgresql-client
+      
+      - name: Test custom configuration
+        env:
+          PGPASSWORD: custompass
+        run: |
+          echo "Testing custom PostgreSQL configuration..."
+          psql -h localhost -U customuser -d customdb -c "SELECT current_database(), current_user;"
+
+  test-mysql-service:
+    runs-on: self-hosted
+    container:
+      image: ubuntu:22.04
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: rootpass
+          MYSQL_DATABASE: testdb
+          MYSQL_USER: testuser
+          MYSQL_PASSWORD: testpass
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Install mysql-client
+        run: |
+          apt-get update
+          apt-get install -y default-mysql-client
+      
+      - name: Test MySQL connection
+        run: |
+          echo "Testing MySQL connection..."
+          mysql -h localhost -u testuser -ptestpass testdb -e "SELECT VERSION();"
+          mysql -h localhost -u testuser -ptestpass testdb -e "CREATE TABLE test (id INT PRIMARY KEY AUTO_INCREMENT, message VARCHAR(255));"
+          mysql -h localhost -u testuser -ptestpass testdb -e "INSERT INTO test (message) VALUES ('Hello from GitHub Actions');"
+          mysql -h localhost -u testuser -ptestpass testdb -e "SELECT * FROM test;"
+          echo "MySQL test passed!"
