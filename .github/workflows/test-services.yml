@@ -1,4 +1,4 @@
-name: Test Services Support (Fixed)
+name: Test Services Support
 on: workflow_dispatch
 permissions:
   id-token: write
@@ -17,7 +17,7 @@ jobs:
         run: |
           apt-get update
           apt-get install -y redis-tools
-      
+
       - name: Test Redis connection
         run: |
           echo "Testing Redis connection..."
@@ -44,7 +44,7 @@ jobs:
         run: |
           apt-get update
           apt-get install -y postgresql-client
-      
+
       - name: Test PostgreSQL connection
         env:
           PGPASSWORD: postgres
@@ -82,7 +82,7 @@ jobs:
         run: |
           apt-get update
           apt-get install -y redis-tools postgresql-client curl
-      
+
       - name: Test all services
         env:
           PGPASSWORD: postgres
@@ -90,16 +90,16 @@ jobs:
           echo "=== Testing Redis ==="
           redis-cli -h localhost -p 6379 ping
           echo "Redis OK!"
-          
+
           echo "=== Testing PostgreSQL ==="
           psql -h localhost -U testuser -d testdb -c "SELECT 1;"
           echo "PostgreSQL OK!"
-          
+
           echo "=== Testing Nginx ==="
           echo "Note: Nginx is on container port 80 (not 8080)"
           curl -f http://localhost:80
           echo "Nginx OK!"
-          
+
           echo "All services are working!"
 
   test-service-with-custom-env:
@@ -120,7 +120,7 @@ jobs:
         run: |
           apt-get update
           apt-get install -y postgresql-client
-      
+
       - name: Test custom configuration
         env:
           PGPASSWORD: custompass
@@ -147,7 +147,7 @@ jobs:
         run: |
           apt-get update
           apt-get install -y default-mysql-client
-      
+
       - name: Wait for MySQL to be ready
         run: |
           echo "Waiting for MySQL to be ready..."
@@ -159,7 +159,7 @@ jobs:
             echo "Waiting... ($i/30)"
             sleep 2
           done
-      
+
       - name: Test MySQL connection
         run: |
           echo "Testing MySQL connection (using TCP on port 3306, not socket)..."
